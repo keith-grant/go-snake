@@ -103,7 +103,7 @@ func move(state bs.GameState) BattlesnakeMoveResponse {
 		safeMovesInfo[key] = entry.ConnectedCellCount
 	}
 
-	log.Print(safeMovesInfo)
+	//log.Print(safeMovesInfo)
 	if len(safeMoves) == 0 {
 		nextMove = "down"
 		//prefer the wall to eating yourself but if there are no walls then default to down
@@ -148,6 +148,9 @@ func isMe(targetX int, targetY int, me []bs.Coord) bool {
 func decideMove(options map[string]*gb.Cell, state bs.GameState) string {
 	starting_value := 5000
 	distanceToFood := starting_value
+  
+	distanceToTail := starting_value
+
   iAmHungry := hungry(state.You)
 	var move string
 
@@ -198,9 +201,14 @@ func decideMove(options map[string]*gb.Cell, state bs.GameState) string {
 			}
 		} else {
 			// else move away from food
-			if entry.DistanceToFood > distanceToFood || distanceToFood == starting_value {
+			//if entry.DistanceToFood > distanceToFood || distanceToFood == starting_value {
+			//	move = key
+			//	distanceToFood = entry.DistanceToFood
+      //}
+      // else move towards tail
+      if entry.DistanceToTail < distanceToTail {
 				move = key
-				distanceToFood = entry.DistanceToFood
+				distanceToTail = entry.DistanceToTail
 			}
 		}
 	}

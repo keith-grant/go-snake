@@ -22,6 +22,7 @@ type Cell struct {
 	Left               *Cell
 	Type               CellType
 	DistanceToFood     int
+  DistanceToTail     int
 	ConnectedCellCount int
 }
 
@@ -138,6 +139,7 @@ func CreateGrid(state bs.GameState) *Grid {
 
 	for _, element := range grid.allCells {
 		element.DistanceToFood = distanceToFood(*element, state)
+    element.DistanceToTail = distanceToTail(*element, state)
 	}
 
 	return grid
@@ -159,6 +161,12 @@ func distanceToFood(cell Cell, state bs.GameState) int {
 	}
 
 	return distanceToFood
+}
+
+func distanceToTail(cell Cell, state bs.GameState) int {
+  tail := state.You.Body[len(state.You.Body) - 1]
+  distanceToTail := distanceBetweenCells(cell.position, tail)
+	return distanceToTail
 }
 
 func distanceBetweenCells(a bs.Coord, b bs.Coord) int {
