@@ -2,3 +2,7 @@
 .cmd
 .idea
 .vscode
+
+__debug_bin.exe
+
+go.sum
