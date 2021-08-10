@@ -123,19 +123,17 @@ func move(state bs.GameState) BattlesnakeMoveResponse {
 }
 
 func isSafe(cell *gb.Cell, me []bs.Coord) bool {
+  
 	if cell == nil {
 		return false
 	}
-	switch cell.Type {
-	case gb.EMPTY:
-		return true
-	case gb.FOOD:
-		return true
-	case gb.SNAKE:
-		return false
-	}
+  var retVal bool
+  retVal = true
+	if cell.Type == gb.SNAKE{
+    retVal = false
+  }
 
-	return isMe(gb.GetCellPosition(cell).X, gb.GetCellPosition(cell).Y, me)
+  return retVal
 }
 
 func isMe(targetX int, targetY int, me []bs.Coord) bool {
@@ -150,8 +148,30 @@ func isMe(targetX int, targetY int, me []bs.Coord) bool {
 func decideMove(options map[string]*gb.Cell, state bs.GameState) string {
 	starting_value := 5000
 	distanceToFood := starting_value
+  iAmHungry := hungry(state.You)
 	var move string
 
+  longenough := (len(state.You.Body) > 4) // don't use state.You.Body as at teh start you aren't actually that long
+  justeaten := (state.You.Health == 100)
+  
+  // My preffered move is always to move onto my tail, that way I can go round and round for ever
+  // I should only mve onto it if I: 
+  // 1. I am longer than 4 (This just makes sure I don't turn back on myself at the start)
+  // 2. I haven't just eaten, if I have then I will grow so my tail won't move out the way
+  // 3. I'm not hungry. If I'm hungry I should move towards food
+  for key, entry := range options {
+    mytail := (entry.Type == gb.MYTAIL)
+    if mytail && longenough && !justeaten && !iAmHungry {
+      log.Printf("MOVE ONTO TAIL %d\n", state.You.Health)
+      move = key
+      return move
+    } else if mytail{
+      // If I can't move onto my tail I should remove it from the possibilities
+      delete(options, key)
+    }
+	}
+
+  // If I can't move onto my tail, then I should try and make sure I always move into teh largest space
 	largestSpace := -1
 	// find largest space to move into
 	for _, entry := range options {
@@ -160,14 +180,15 @@ func decideMove(options map[string]*gb.Cell, state bs.GameState) string {
 		}
 	}
 
-	// Now remove all cells that aren't connected to a space that large
+	// Now remove all options that aren't connected to a space the size of the largest space
+  // Note that if all available moves are connected tehy will be attached to teh same space
+  // The point of this is to stop me turning into small cul-de-sacs caused by my own massive body
 	for key, entry := range options {
 		if entry.ConnectedCellCount != largestSpace {
 			delete(options, key)
 		}
 	}
 
-	iAmHungry := hungry(state.You)
 	for key, entry := range options {
 		// if hungary move towards FOOD
 		if iAmHungry {
@@ -176,7 +197,7 @@ func decideMove(options map[string]*gb.Cell, state bs.GameState) string {
 				distanceToFood = entry.DistanceToFood
 			}
 		} else {
-			// move away from food
+			// else move away from food
 			if entry.DistanceToFood > distanceToFood || distanceToFood == starting_value {
 				move = key
 				distanceToFood = entry.DistanceToFood

@@ -10,6 +10,7 @@ const (
 	EMPTY CellType = 0
 	FOOD  CellType = 1
 	SNAKE CellType = 2
+  MYTAIL CellType = 3
 )
 
 /////////////////////
@@ -38,7 +39,9 @@ func NewCell(x int, y int, cellType CellType) *Cell {
 
 func getCellType(state bs.GameState, x int, y int) CellType {
 	retVal := EMPTY
-	if isSnake(state, x, y) {
+  if (isMyTail(state, x, y)) {
+    retVal = MYTAIL
+  } else	if isSnake(state, x, y) {
 		retVal = SNAKE
 	} else if isFood(state, x, y) {
 		retVal = FOOD
@@ -68,6 +71,15 @@ func isFood(state bs.GameState, x int, y int) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func isMyTail(state bs.GameState, x int, y int) bool {
+	me := state.You
+	tail := me.Body[me.Length - 1]
+  if(tail.X == x && tail.Y == y) {
+    return true
+  }
 	return false
 }
 
